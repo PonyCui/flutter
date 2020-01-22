@@ -473,7 +473,7 @@ abstract class TextStyle {
     List<FontFeature> fontFeatures,
   }) {
     if (engine.experimentalUseSkia) {
-      return engine.SkTextStyle(
+      return engine.SkTextPatchStyle(
           color: color,
           decoration: decoration,
           decorationColor: decorationColor,
@@ -494,6 +494,27 @@ abstract class TextStyle {
           shadows: shadows,
           fontFeatures: fontFeatures,
       );
+      // return engine.SkTextStyle(
+      //     color: color,
+      //     decoration: decoration,
+      //     decorationColor: decorationColor,
+      //     decorationStyle: decorationStyle,
+      //     decorationThickness: decorationThickness,
+      //     fontWeight: fontWeight,
+      //     fontStyle: fontStyle,
+      //     textBaseline: textBaseline,
+      //     fontFamily: fontFamily,
+      //     fontFamilyFallback: fontFamilyFallback,
+      //     fontSize: fontSize,
+      //     letterSpacing: letterSpacing,
+      //     wordSpacing: wordSpacing,
+      //     height: height,
+      //     locale: locale,
+      //     background: background,
+      //     foreground: foreground,
+      //     shadows: shadows,
+      //     fontFeatures: fontFeatures,
+      // );
     } else {
       return engine.EngineTextStyle(
           color: color,
@@ -591,7 +612,7 @@ abstract class ParagraphStyle {
     Locale locale,
   }) {
     if (engine.experimentalUseSkia) {
-      return engine.SkParagraphStyle(
+      return engine.SkParagraphPatchStyle(
         textAlign: textAlign,
         textDirection: textDirection,
         maxLines: maxLines,
@@ -604,6 +625,19 @@ abstract class ParagraphStyle {
         ellipsis: ellipsis,
         locale: locale,
       );
+      // return engine.SkParagraphStyle(
+      //   textAlign: textAlign,
+      //   textDirection: textDirection,
+      //   maxLines: maxLines,
+      //   fontFamily: fontFamily,
+      //   fontSize: fontSize,
+      //   height: height,
+      //   fontWeight: fontWeight,
+      //   fontStyle: fontStyle,
+      //   strutStyle: strutStyle,
+      //   ellipsis: ellipsis,
+      //   locale: locale,
+      // );
     } else {
       return engine.EngineParagraphStyle(
         textAlign: textAlign,
@@ -1402,7 +1436,8 @@ abstract class ParagraphBuilder {
   /// [Paragraph].
   factory ParagraphBuilder(ParagraphStyle style) {
     if (engine.experimentalUseSkia) {
-      return engine.SkParagraphBuilder(style);
+      return engine.SkParagraphPatchBuilder(style);
+      // return engine.SkParagraphBuilder(style);
     } else {
       return engine.EngineParagraphBuilder(style);
     }

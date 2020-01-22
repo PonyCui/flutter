@@ -23,6 +23,7 @@ Future<void> webOnlyInitializePlatform({
   assetManager ??= const engine.AssetManager();
   await webOnlySetAssetManager(assetManager);
   if (engine.experimentalUseSkia) {
+    await _fontCollection.ensureFontsLoaded();
     await engine.skiaFontCollection.ensureFontsLoaded();
   } else {
     await _fontCollection.ensureFontsLoaded();
@@ -50,6 +51,8 @@ Future<void> webOnlySetAssetManager(engine.AssetManager assetManager) async {
   _assetManager = assetManager;
 
   if (engine.experimentalUseSkia) {
+    _fontCollection ??= engine.FontCollection();
+    _fontCollection.clear();
     engine.skiaFontCollection ??= engine.SkiaFontCollection();
   } else {
     _fontCollection ??= engine.FontCollection();
@@ -59,6 +62,7 @@ Future<void> webOnlySetAssetManager(engine.AssetManager assetManager) async {
 
   if (_assetManager != null) {
     if (engine.experimentalUseSkia) {
+      await _fontCollection.registerFonts(_assetManager);
       await engine.skiaFontCollection.registerFonts(_assetManager);
     } else {
       await _fontCollection.registerFonts(_assetManager);

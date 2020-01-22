@@ -163,13 +163,72 @@ class SkCanvas {
     skCanvas.callMethod('drawPaint', <js.JsObject>[paint.skiaObject]);
   }
 
-  void drawParagraph(ui.Paragraph paragraph, ui.Offset offset) {
-    final SkParagraph skParagraph = paragraph;
-    skCanvas.callMethod('drawParagraph', <dynamic>[
-      skParagraph.skParagraph,
-      offset.dx,
-      offset.dy,
-    ]);
+  void drawParagraph(ui.Paragraph paragraph, ui.Offset offset) async {
+    final SkParagraphPatch skParagraph = paragraph;
+    ui.Image pixelImage = skParagraph.pixelCache;
+    if (pixelImage == null) {
+      if (skParagraph._drawOnCanvas) {
+        final bitmapCanvas = BitmapCanvas(ui.Rect.fromLTRB(
+          0,
+          0,
+          skParagraph.width,
+          skParagraph.height,
+        ));
+        bitmapCanvas.drawParagraph(skParagraph, ui.Offset.zero);
+        final String imageDataUrl = bitmapCanvas.toDataUrl();
+        bitmapCanvas.endOfPaint();
+        final Uint8List data = base64
+            .decode(imageDataUrl.replaceFirst("data:image/png;base64,", ""));
+        final js.JsObject skImage =
+            canvasKit.callMethod('MakeImageFromEncoded', <Uint8List>[data]);
+        pixelImage = SkImage(skImage);
+      } else {
+        final html.ImageElement imgElement = html.ImageElement();
+        imgElement.onLoad.listen((html.Event event) {
+          final bitmapCanvas = BitmapCanvas(
+            ui.Rect.fromLTRB(0, 0, imgElement.naturalWidth.toDouble(),
+                imgElement.naturalHeight.toDouble()),
+          );
+          bitmapCanvas._canvasPool.context.drawImage(imgElement, 0, 0);
+          final String imageDataUrl = bitmapCanvas.toDataUrl();
+          bitmapCanvas.endOfPaint();
+          final Uint8List data = base64
+              .decode(imageDataUrl.replaceFirst("data:image/png;base64,", ""));
+          final js.JsObject skImage =
+              canvasKit.callMethod('MakeImageFromEncoded', <Uint8List>[data]);
+          skParagraph.pixelCache = SkImage(skImage);
+          if (SkParagraphPatchBuilder._widgetUpdater != null) {
+            SkParagraphPatchBuilder._widgetUpdater(skParagraph.plainText);
+          }
+        });
+        imgElement.src =
+            'data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg"  width="${skParagraph.width.toString()}px" height="${skParagraph.height.toString()}px"><foreignObject width="${skParagraph.width.toString()}px" height="${skParagraph.height.toString()}px"><body xmlns="http://www.w3.org/1999/xhtml" style="margin:0;">${skParagraph.paragraphElement.outerHtml.replaceAll("<p ", "<span ").replaceAll("<p>", "<span>").replaceAll("</p>", "</span>")}</body></foreignObject></svg>';
+      }
+    }
+    if (pixelImage != null) {
+      drawImageRect(
+        pixelImage,
+        ui.Rect.fromLTWH(
+          0,
+          0,
+          pixelImage.width.toDouble(),
+          pixelImage.height.toDouble(),
+        ),
+        ui.Rect.fromLTWH(
+          offset.dx,
+          offset.dy,
+          pixelImage.width.toDouble() / ui.window.devicePixelRatio,
+          pixelImage.height.toDouble() / ui.window.devicePixelRatio,
+        ),
+        SkPaint(),
+      );
+    }
+    // final SkParagraph skParagraph = paragraph;
+    // skCanvas.callMethod('drawParagraph', <dynamic>[
+    //   skParagraph.skParagraph,
+    //   offset.dx,
+    //   offset.dy,
+    // ]);
   }
 
   void drawPath(ui.Path path, SkPaint paint) {
